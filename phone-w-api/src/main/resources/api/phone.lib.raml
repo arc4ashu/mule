@@ -1,14 +1,11 @@
 #%RAML 1.0 Library
 
 types:
-
-  codeValue:
+  phoneType:
     properties:
       code: string
       value: string
       
-  phoneType: codeValue
-          
   phoneInfo:
     properties:
       intcode: string
@@ -24,8 +21,9 @@ types:
       vendorId: string
       vendorName : string
       verifiedDate: string
+      partyId : string
       verificationDesc : string
-        
+  
   transactionInfo:
     properties:
       appId: string

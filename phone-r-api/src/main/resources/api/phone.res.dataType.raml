@@ -1,0 +1,15 @@
+#%RAML 1.0 DataType
+uses: 
+  phoneLib: phone.lib.raml
+type: object
+properties:
+  phoneRowId? : string
+  phoneType: phoneLib.phoneType
+  phoneInfo: phoneLib.phoneInfo
+  faInfo: phoneLib.faInfo
+  isVerified : boolean
+  isDefault : boolean
+  note : string
+  venderInfoList: phoneLib.venderInfo[]
+  status: phoneLib.statusInfo
+    

@@ -1,0 +1,19 @@
+#%RAML 1.0 Library
+title: Sample API
+
+  addressInfo:
+    properties:
+      addressId: string
+      line1: string
+      line2: string
+      line3: string
+      city: codeValue
+      state: codeValue
+      zip: codeValue
+      country: codeValue
+ 
+      
+  employerInfo:
+    properties:
+      employerName: string
+      employerAddress: addressInfo

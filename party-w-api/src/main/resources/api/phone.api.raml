@@ -1,0 +1,45 @@
+#%RAML 1.0
+title: Phone API
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/11577a51-2e9f-4c5f-844e-20a8f8ceab2d/phone/api # baseUri: "http://localhost:80/phone/api"
+version: v1
+types:
+  createPhoneReq: !include phone.req.dataType.raml
+  createPhoneRes: !include phone.res.dataType.raml
+  updatePhoneReq: !include phone.req.dataType.raml
+  updatePhoneRes: !include phone.res.dataType.raml
+  
+/phone:
+  /create:
+    post:
+      body:
+        application/json:
+          type: createPhoneReq
+         # examples: !include phone.req.example.raml
+      responses:
+        200:
+          body:
+            application/json:
+              type: createPhoneRes
+          #    examples: !include phone.res.example.raml
+  /update:
+    put:
+      body:
+        application/json:
+          type: updatePhoneReq
+          #examples: !include phone.req.example.raml
+      responses:
+        201:
+          body:
+            application/json:
+              type: updatePhoneRes
+            #  examples: !include phone.res.example.raml
+        401:
+          body:
+            application/json:
+              type: updatePhoneRes
+     #         examples: !include phone.error.example.raml
+                
+     
+      
+    
+    

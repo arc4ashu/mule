@@ -1,0 +1,25 @@
+#%RAML 1.0
+title: Address API
+baseUri: http://localhost:80/phone/api
+version: v1
+types:
+  addressInfoDetails: !include address.res.dataType.raml
+   
+  
+/address:
+  /{addressId}:
+    get:
+      headers:  
+        correlationId?: string
+        appId?: string
+        useCaseId?: string
+        source?: string
+        evenSource?: string
+        
+      responses:
+        200:
+          body:
+            application/json:
+              type: addressInfoDetails
+          
+  

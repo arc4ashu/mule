@@ -1,0 +1,10 @@
+#%RAML 1.0 DataType
+uses: 
+  employerLib: employer.lib.raml
+type: object
+properties:
+  employerRowId? : string
+  employerName: employerLib.employerName
+  employerrAddress: !include address.dataType.raml
+  statusInfo?: employerLib.statusInfo
+    

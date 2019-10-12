@@ -1,0 +1,45 @@
+#%RAML 1.0
+title: Email API
+baseUri: http://localhost:80/phone/api
+version: v1
+types:
+  createEmailReq: !include email.req.dataType.raml
+  createEmailRes: !include email.res.dataType.raml
+  updateEmailReq: !include email.req.dataType.raml
+  updateEmailRes: !include email.res.dataType.raml
+  
+/email:
+  /create:
+    post:
+      body:
+        application/json:
+          type: createEmailReq
+         
+      responses:
+        200:
+          body:
+            application/json:
+              type: createEmailRes
+          #    examples: !include phone.res.example.raml
+  /update:
+    put:
+      body:
+        application/json:
+          type: updateEmailReq
+          #examples: !include phone.req.example.raml
+      responses:
+        201:
+          body:
+            application/json:
+              type: updateEmailRes
+            #  examples: !include phone.res.example.raml
+        401:
+          body:
+            application/json:
+              type: updateEmailRes
+     #         examples: !include phone.error.example.raml
+                
+     
+      
+    
+    

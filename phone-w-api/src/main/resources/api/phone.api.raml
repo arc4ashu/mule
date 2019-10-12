@@ -14,29 +14,32 @@ types:
       body:
         application/json:
           type: createPhoneReq
-          #examples: !include phone.req.example.raml
+         # examples: !include phone.req.example.raml
       responses:
         200:
           body:
             application/json:
               type: createPhoneRes
-              #examples: !include phone.res.example.raml
+          #    examples: !include phone.res.example.raml
   /update:
     put:
       body:
         application/json:
           type: updatePhoneReq
-         # examples: !include phone.req.example.raml
+          #examples: !include phone.req.example.raml
       responses:
         201:
           body:
             application/json:
               type: updatePhoneRes
-              #examples: !include phone.res.example.raml
+            #  examples: !include phone.res.example.raml
         401:
           body:
             application/json:
               type: updatePhoneRes
-              #examples: !include phone.error.example.raml
+     #         examples: !include phone.error.example.raml
                 
-  
+     
+      
+    
+    

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="email.api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8088" />
+    </http:listener-config>
+    <apikit:config name="email.api-config" raml="email.api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="fda28e20-0b10-4e0e-92a1-5467f8381e6d" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
+	</mongo:config>
+	<flow name="email.api-main">
+        <http:listener config-ref="email.api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="email.api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="email.api-console">
+        <http:listener config-ref="email.api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="email.api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\email\update:application\json:email.api-config">
+        <logger level="INFO" message="put:\email\update:application\json:email.api-config" />
+		<set-variable value="" doc:name="updated EmailRowId" doc:id="cbde5470-495c-42e3-bd44-166110c3eb58" variableName="updatedEmailRowId" />
+		<try doc:name="Try" doc:id="e1492335-c877-4ca2-a4cf-4b0b79063ffe" >
+			<mongo:update-documents doc:name="Update documents" doc:id="4b453609-61a9-4416-a2f8-b3c76e399a37" config-ref="MongoDB_Config" collectionName="email_col" target="updatedEmailRowId">
+				<mongo:find-query ><![CDATA[#[{ "emailRowId" : payload.emailRowId}]]]></mongo:find-query>
+				<mongo:content-to-update ><![CDATA[#[payload]]]></mongo:content-to-update>
+			</mongo:update-documents>
+			<logger level="INFO" doc:name="Logger" doc:id="cad52795-a568-44e7-9f0f-b3b42e3d2640" message="#[payload]"/>
+			<ee:transform doc:name="Transform Message" doc:id="47ef0f37-1a03-483d-af7a-8a523b1f6af3" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	emailRowId: payload.emailRowId,
+	statusInfo: {
+		isRetry: false,
+		serviceStatus: "SUCCESS",
+		httpStatus: "200",
+		businessDesc: vars.updatedEmailRowId.matchedCount,
+		technicalDesc: ""
+	},
+	
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</try>
+    </flow>
+    <flow name="post:\email\create:application\json:email.api-config">
+        <logger level="INFO" message="post:\email\create:application\json:email.api-config" />
+		<set-variable value="" doc:name="create emailRowId" doc:id="160d90a6-d2e3-4012-9bd9-4f9c56868b8a" variableName="emailRowId"/>
+		<try doc:name="Try" doc:id="d73eff09-e05f-4127-9d18-042677ffaed0" >
+			<mongo:insert-document doc:name="Insert document" doc:id="007126eb-fd8f-4895-9aa6-45a0a0bedbc0" config-ref="MongoDB_Config" collectionName="email_col" target="emailRowId"/>
+			<logger level="INFO" doc:name="Logger" doc:id="87fa3bfd-59fe-4bf3-bb75-7a0ef2023c50" />
+			<ee:transform doc:name="Transform Message" doc:id="74303a4a-298a-41ee-bf0c-2cd3166b69c4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	statusInfo: {
+		isRetry: false,
+		serviceStatus: "100",
+		httpStatus: "200OK",
+		businessDesc: "Success",
+		technicalDesc: ""
+	},
+	emailRowId: vars.emailRowId
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</try>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0b3637f6-508b-45d0-a5f3-de7b827a84a6" >
+				<logger level="INFO" doc:name="Logger" doc:id="71799e77-89ba-4270-ae1a-bb64ae7f37c8" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+    </flow>
+</mule>

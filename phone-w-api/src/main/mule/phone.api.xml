@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="phone.api-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
+        <http:listener-connection host="0.0.0.0" port="8088" />
     </http:listener-config>
-    <apikit:config name="phone.api-config" api="phone.api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="phone.api-main">
+    <apikit:config name="phone.api-config" raml="phone.api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="200d30ae-2582-4213-b027-3639e270b28c" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
+	</mongo:config>
+	<mongo:config name="MongoDB_Config1" doc:name="MongoDB Config" doc:id="c15b638e-fa4a-4919-8925-aa1a7594e28f" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
+	</mongo:config>
+	<mongo:config name="MongoDB_Config2" doc:name="MongoDB Config" doc:id="43caa928-fc67-47f0-ab1d-7314552fe0ce" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
+	</mongo:config>
+	<flow name="phone.api-main">
         <http:listener config-ref="phone.api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="phone.api-config" />
@@ -125,8 +134,56 @@ output application/json
     </flow>
     <flow name="put:\phone\update:application\json:phone.api-config">
         <logger level="INFO" message="put:\phone\update:application\json:phone.api-config" />
+		<set-variable value="" doc:name="Update PhoneRowId" doc:id="3a445e0d-13dd-400a-b6df-d0997dbe530f" variableName="updatedPhoneRowId"/>
+		<try doc:name="Try" doc:id="afcf1bde-705c-472c-9864-5736cd9e3252" >
+			<mongo:update-documents doc:name="Update documents" doc:id="2c6914bf-2e56-4493-abde-a8bf775fa314" target="updatedPhoneRowId" config-ref="MongoDB_Config2" collectionName="phone_col">
+				<mongo:find-query ><![CDATA[#[{ "phoneRowId" : payload.phoneRowId}]]]></mongo:find-query>
+				<mongo:content-to-update ><![CDATA[#[payload]]]></mongo:content-to-update>
+			</mongo:update-documents>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="554ff975-e4fa-449b-bf41-87f269329386" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="42ac4822-526b-4170-a30c-cc9158bf4f4d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	phoneRowId: payload.phoneRowId,
+	statusInfo: {
+		isRetry: false,
+		serviceStatus: "SUCCESS",
+		httpStatus: "200",
+		businessDesc: vars.updatedPhoneRowId.matchedCount,
+		technicalDesc: ""
+	},
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
     <flow name="post:\phone\create:application\json:phone.api-config">
         <logger level="INFO" message="post:\phone\create:application\json:phone.api-config" />
+		<set-variable value="" doc:name="create PhoneRowId" doc:id="06b40c58-e499-420d-8456-f0b38414c003" variableName="createdPhoneRowId"/>
+		<try doc:name="Try" doc:id="faa82800-1d2a-4e0c-b440-7e2ef92e800d" >
+			<mongo:insert-document doc:name="Insert document" doc:id="098c64de-edda-407d-88fb-f47496d63311" config-ref="MongoDB_Config1" collectionName="phone_col" target="createdPhoneRowId"/>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="17d4ee59-6a6f-4373-92db-3c7e63166137" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="8f8360e0-465b-4937-a616-1e4dab818b2c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	statusInfo: {
+		isRetry: false,
+		serviceStatus: "Success",
+		httpStatus: "200/OK",
+		businessDesc: "",
+		technicalDesc: ""
+	},
+	phoneRowId: vars.createdPhoneRowId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
 </mule>

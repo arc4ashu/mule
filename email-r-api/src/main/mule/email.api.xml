@@ -3,10 +3,13 @@
 http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="email.api-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8087" />
+        <http:listener-connection host="0.0.0.0" port="8088" />
     </http:listener-config>
     <apikit:config name="email.api-config" raml="email.api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="035873e4-82ba-4689-bb43-076443904dce" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
+	</mongo:config>
+	<mongo:config name="MongoDB_Config1" doc:name="MongoDB Config" doc:id="a12496ba-97f3-4972-b72f-dd145203b4bf" >
 		<mongo:connection-string-connection connectionString="mongodb+srv://ravi:Ravi@hubcluster-6g8iz.azure.mongodb.net/HUBDB" />
 	</mongo:config>
 	<flow name="email.api-main">
@@ -141,15 +144,45 @@ output application/json
 			</ee:message>
 		</ee:transform>
 		<try doc:name="Try" doc:id="277e5f22-8c26-4f3a-b020-c0b1b7f30c50" >
-			<mongo:find-one-document collectionName="email_col" doc:name="Find one document" doc:id="e943947e-8cf0-4009-a0b8-cf357cef4ed6" config-ref="MongoDB_Config">
-			</mongo:find-one-document>
+			<mongo:find-one-document doc:name="Find one document" doc:id="8ae75d57-4c1f-453e-93b5-ede72a77ad43" config-ref="MongoDB_Config1" collectionName="email_col"/>
 		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="985ec729-9af5-4a97-9b45-28bfed7ee4b1" message="#[payload]"/>
-		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="7793fad8-f4eb-43eb-9bad-83e7dcffbc6e">
-            <ee:variables>
-                <ee:set-variable variableName="emailId"><![CDATA[attributes.uriParams.emailId]]></ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <logger level="INFO" message="get:\email\(emailId):email.api-config" />
+		<logger level="INFO" doc:name="Logger" doc:id="985ec729-9af5-4a97-9b45-28bfed7ee4b1" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="c2f362aa-de79-4e57-bcea-6aff79ad614b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	faInfo: {
+		office: payload.faInfo.office default "",
+		fa: payload.faInfo.fa default ""
+	},
+	note: payload.note default "",
+	isDefault: payload.isDefault default true,
+	venderInfoList: payload.venderInfo map ( venderInfo , indexOfVenderInfo ) -> {
+		verifiedDate: venderInfo.verifiedDate default "",
+		vendorId: venderInfo.vendorId default "",
+		verificationDesc: venderInfo.verificationDesc default "",
+		vendorName: venderInfo.vendorName default ""
+	},
+	emailType: {
+		code: payload.emailType.code default "",
+		value: payload.emailType.value default ""
+	},
+	isVerified: payload.isVerified default true,
+	emailRowId: payload.emailRowId,
+	emailId: payload.emailId default "",
+	status: {
+		isRetry: false,
+		serviceStatus: "Success",
+		httpStatus: "200",
+		businessDesc: "",
+		technicalDesc: ""
+	}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\email\(emailId):email.api-config" />
     </flow>
 </mule>

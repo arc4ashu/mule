@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
-http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
     <http:listener-config name="address.api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="address.api-config" api="address.api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="b2a2b514-ea70-4aa3-975b-2b1ac7090231" >
-		<mongo:connection-string-connection connectionString="mongodb+srv://ashu:Ashu@hubcluster-6g8iz.azure.mongodb.net/HUBDB?retryWrites=true&amp;w=majority" />
-	</mongo:config>
-	<flow name="address.api-main">
+    <flow name="address.api-main">
         <http:listener config-ref="address.api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body><![CDATA[#[payload]]]></http:body>
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="address.api-config" />
@@ -128,71 +123,7 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="put:\address\update:application\json:address.api-config">
-        <set-variable value="" doc:name="update response" doc:id="b4894883-7187-4d58-8e5b-52e4ca101ddf" variableName="updatedRowId"/>
-		<try doc:name="Try" doc:id="a12334cd-b190-41ba-b4e4-9987f6647f60" >
-			<mongo:update-documents collectionName="address_col" doc:name="Update documents" doc:id="8d8a53f9-6109-4ddc-a7c7-1549775c46be" config-ref="MongoDB_Config" target="updatedRowId">
-				<mongo:find-query ><![CDATA[#[{ "addressRowId" : payload.addressRowId}]]]></mongo:find-query>
-				<mongo:content-to-update ><![CDATA[#[payload]]]></mongo:content-to-update>
-			</mongo:update-documents>
-		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="31ddf267-dfca-4606-8f68-045654fea1dc" message="#[vars.updatedRowId]" />
-		<ee:transform doc:name="Transform Message" doc:id="faf19136-139b-4783-94d0-8b57e4cf5c03" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-    </flow>
     <flow name="post:\address\create:application\json:address.api-config">
         <logger level="INFO" message="post:\address\create:application\json:address.api-config" />
-		<set-variable value="" doc:name="Address Row Id" doc:id="82c6c6ce-1f83-4324-9eca-5a8a35442395" variableName="addressRowId"/>
-		<try doc:name="Try" doc:id="e0e2e386-aa16-4633-bd61-a0744c9c5610" >
-			<mongo:insert-document doc:name="Insert document" doc:id="82a76c25-5625-4b64-8ed3-fff1a117ac66" config-ref="MongoDB_Config" collectionName="address_col" target="addressRowId"/>
-			<logger level="INFO" doc:name="Logger" doc:id="4ad745b4-7ed6-4a61-b3b3-324fd0d29311" message="#[vars.addressRowId]"/>
-			<ee:transform doc:name="Transform Message" doc:id="8b502b4f-614e-4f23-862f-5a09904d80d7">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-	addressRowId: vars.addressRowId,
-	statusInfo: {
-		isRetry: false,
-		serviceStatus: "SUCCESS",
-		httpStatus: "200",
-		businessDesc: "",
-		technicalDesc: ""
-	}
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-			<error-handler >
-				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="148871dd-06ba-40c2-abd3-34e7fdbfd0b0" type="ANY">
-					<ee:transform doc:name="DB Error" doc:id="694d2e58-ab06-47e7-872d-1a2f72a39b3a" >
-						<ee:message >
-							<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	addressRowId: "-1",
-	statusInfo: {
-		isRetry: true,
-		serviceStatus: "ERROR",
-		httpStatus: "200",
-		businessDesc: error.errorMessage,
-		technicalDesc: error.cause
-	}
-}]]></ee:set-payload>
-						</ee:message>
-					</ee:transform>
-				</on-error-continue>
-			</error-handler>
-		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="82b2e7ef-f4d0-4691-b3c4-f94e488dd479" message="post message"/>
     </flow>
 </mule>

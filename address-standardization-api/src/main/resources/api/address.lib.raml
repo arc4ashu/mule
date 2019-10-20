@@ -1,0 +1,54 @@
+#%RAML 1.0 Library
+
+types:
+
+  codeValue:
+    properties:
+      code: string
+      value: string
+      
+  addressType: codeValue
+          
+  addressInfo:
+    properties:
+      addressLine1: string
+      addressLine2 : string
+      addressLine3: string
+      city: codeValue
+      state: codeValue
+      pin: codeValue
+      country: codeValue
+      
+
+  faInfo:
+    properties:
+      office: string
+      fa : string
+
+  venderInfo:
+    properties:
+      vendorId: string
+      vendorName : string
+      verifiedDate: string
+      verificationDesc : string
+        
+  transactionInfo:
+    properties:
+      appId: string
+      correlationId: string
+      useCaseId: string
+      source: string
+      evenSource: string
+      requestTimestamp: datetime
+      behalfOf: string  
+
+  statusInfo:
+    properties:
+      httpStatus: string
+      serviceStatus: string
+      businessDesc: string
+      technicalDesc: string
+      isRetry: boolean
+
+ 
+  

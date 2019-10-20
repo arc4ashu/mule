@@ -1,5 +1,5 @@
 #%RAML 1.0
-title: Phone API
+title: Address API
 baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/11577a51-2e9f-4c5f-844e-20a8f8ceab2d/phone/api # baseUri: "http://localhost:80/phone/api"
 version: v1
 types:
@@ -9,7 +9,7 @@ types:
   updateAddressRes: !include address.res.dataType.raml
   
 /address:
-  /create:
+  /validate:
     post:
       body:
         application/json:

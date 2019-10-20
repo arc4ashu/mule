@@ -1,7 +1,8 @@
 #%RAML 1.0 DataType
 uses: 
   addressLib: address.lib.raml
-type: !include  address.dataType.raml
+type: object
 properties:
+  barCode? : string
   statusInfo: addressLib.statusInfo
   

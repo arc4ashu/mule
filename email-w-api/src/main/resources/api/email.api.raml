@@ -25,19 +25,15 @@ types:
     put:
       body:
         application/json:
-          type: updateEmailReq
+          type: createEmailReq
           #examples: !include phone.req.example.raml
       responses:
         201:
           body:
             application/json:
-              type: updateEmailRes
+              type: createEmailRes
             #  examples: !include phone.res.example.raml
-        401:
-          body:
-            application/json:
-              type: updateEmailRes
-     #         examples: !include phone.error.example.raml
+        
                 
      
       
